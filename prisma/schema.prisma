@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  // NOTE: When using postgresql, mysql or sqlserver, uncomment the @db.text annotations in model Account below
+  // Further reading: 
+  // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
+  // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
+  url      = env("DATABASE_URL")
+}
+
+model Example {
+  id String @id @default(cuid())
+}
+
+// Necessary for Next auth
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? //@db.Text
+  access_token      String? //@db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? //@db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model CustomUser {
+  id       String           @id @default(cuid())
+  username String           @unique
+  password String
+  image    String?
+  books    Book[]
+  comments Comment[]
+  ratings  Rating[]
+  reading  ReadingSession[]
+  Like     Like[]
+}
+
+model Book {
+  id             String           @id @default(cuid())
+  title          String
+  isActive       Boolean
+  readingSession ReadingSession[]
+  author         String?
+  externalLink   String?
+  hostedLink     String?
+  description    String? //TODO @db.text
+  image          String?
+  rating         Rating[]
+  comments       Comment[]
+  owner          CustomUser       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId        String
+}
+
+model Comment {
+  id        String     @id @default(cuid())
+  user      CustomUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  book      Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId    String
+  message   String
+  parent    Comment?   @relation("ParentChild", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Comment[]  @relation("ParentChild")
+  parentId  String?
+  likes     Like[]
+}
+
+model Like {
+  user      CustomUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment    @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String
+  commentId String
+
+  @@id([userId, commentId])
+}
+
+model Rating {
+  id     String     @id @default(cuid())
+  user   CustomUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  book   Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  bookId String
+  rating Int
+}
+
+model ReadingSession {
+  userId                     String
+  bookId                     String
+  startDate                  DateTime
+  endDate                    DateTime
+  user                       CustomUser                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book                       Book                      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  ReadingSessionCollection   ReadingSessionCollection? @relation(fields: [readingSessionCollectionId], references: [id], onDelete: Cascade)
+  readingSessionCollectionId String
+
+  @@id([userId, bookId])
+}
+
+model ReadingSessionCollection {
+  id              String           @id @default(cuid())
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  ReadingSessions ReadingSession[]
+}

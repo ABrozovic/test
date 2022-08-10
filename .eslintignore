@@ -1,0 +1,14 @@
+\*_/node_modules/_
+dist
+
+coverage
+**/.next/\*
+_.json
+_.lock
+_.css
+_.scss
+**/out/\*
+
+next-env.d.ts
+/src/pages/\_app.tsx
+/src/server/db/client.ts
