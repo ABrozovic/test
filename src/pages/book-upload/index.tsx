@@ -86,7 +86,7 @@ const CreateBookPage: NextPage = () => {
 
       /* Send request to our api route */
     }
-    
+
     mutate(values);
     
   };
@@ -104,6 +104,7 @@ const CreateBookPage: NextPage = () => {
                 className="space-y-6"
                 
                 onSubmit={onPromise(handleSubmit(onSubmit, (e) => {
+                  
                   console.log(e);
                 }))}
               >

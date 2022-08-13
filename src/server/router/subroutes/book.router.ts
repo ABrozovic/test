@@ -1,11 +1,13 @@
-
 import { TRPCError } from "@trpc/server";
-import { routerBookSchema } from "../../../schema/book.schema";
+import { z } from "zod";
+import { createBookSchema } from "../../../schema/book.schema";
 import { createRouter } from "../trpc/context";
 
+
+
 export const bookRouter = createRouter().mutation("create-book", {
-  input: routerBookSchema,
-  async resolve({ ctx, input }) {    
+  input: createBookSchema.extend({image:z.string().optional(), hostedLink:z.string().optional()}),
+  async resolve({ ctx, input }) {
     const {
       title,
       author,

@@ -21,11 +21,12 @@ export const createBookSchema = z.object({
   description: z.string().optional(),
   image: z
     .any()
-
     .refine(
-      (images: FileList | string) =>
-        typeof images === "string" ||
-        checkForValidExtensions(images, ACCEPTED_IMAGE_TYPES),
+      (files: FileList | string) =>
+        typeof files === "string" ||
+        evaluateFiles(Array.from(files), (file) =>
+          ACCEPTED_IMAGE_TYPES.includes(file.type)
+        ),
       ".jpg, .jpeg, .png, and .webp files are accepted."
     ),
 
@@ -35,39 +36,28 @@ export const createBookSchema = z.object({
     .refine(
       (files: FileList | string) =>
         typeof files === "string" ||
-        checkForValidExtensions(files, ACCEPTED_FILE_TYPES),
+        evaluateFiles(Array.from(files), (file) =>
+          ACCEPTED_FILE_TYPES.includes(file.type)
+        ),
       { message: ` .pdf, .doc, and .epub files are accepted.` }
     )
     .refine(
-      (files: FileList | string) =>
-        typeof files === "string" || (files[0] as File).size <= MAX_FILE_SIZE,
+      (files: FileList | string) => 
+        typeof files === "string" || 
+        evaluateFiles(Array.from(files), (file) => file.size < MAX_FILE_SIZE),
       `Max file size is 100MB.`
     ),
   ownerId: z.string({ required_error: "OwnerId is required." }),
 });
 
-export const routerBookSchema = z.object({
-  title: z
-    .string({ required_error: "Title is required." })
-    .min(3, "Title must be at least 3 characters."),
-  author: z.string().optional(),
-  description: z.string().optional(),
-  image: z.string().optional(),
-  externalLink: z.string().optional().or(z.literal("")),
-  hostedLink: z.string().optional(),
-  ownerId: z.string({ required_error: "OwnerId is required." }),
-});
 
-function checkForValidExtensions(
-  files: FileList,
-  extensions: string[]
-): boolean {
+function evaluateFiles<T>(files: T[], predicate: (x: T) => boolean): boolean {
   for (let i = 0; i < files.length; i++) {
-    if (!extensions.includes((files[i] as File).type)) {      
+    if (!predicate(files[i] as T)) {
       return false;
     }
   }
-  return files.length > 0 ? true : false;
+  return true;
 }
 
 export type CreateBookInput = z.TypeOf<typeof createBookSchema>;
