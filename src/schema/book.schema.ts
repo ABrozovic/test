@@ -12,8 +12,16 @@ const ACCEPTED_FILE_TYPES = [
   "application/msword",
   "application/epub+zip",
 ];
+function evaluateFiles<T>(files: T[], predicate: (x: T) => boolean): boolean {
+  for (let i = 0; i < files.length; i++) {
+    if (!predicate(files[i] as T)) {
+      return false;
+    }
+  }
+  return true;
+}
 
-export const createBookSchema = z.object({
+export const validateBookSchema = z.object({
   title: z
     .string({ required_error: "Title is required." })
     .min(3, "Title must be at least 3 characters."),
@@ -42,8 +50,8 @@ export const createBookSchema = z.object({
       { message: ` .pdf, .doc, and .epub files are accepted.` }
     )
     .refine(
-      (files: FileList | string) => 
-        typeof files === "string" || 
+      (files: FileList | string) =>
+        typeof files === "string" ||
         evaluateFiles(Array.from(files), (file) => file.size < MAX_FILE_SIZE),
       `Max file size is 100MB.`
     ),
@@ -51,16 +59,14 @@ export const createBookSchema = z.object({
 });
 
 
-function evaluateFiles<T>(files: T[], predicate: (x: T) => boolean): boolean {
-  for (let i = 0; i < files.length; i++) {
-    if (!predicate(files[i] as T)) {
-      return false;
-    }
-  }
-  return true;
-}
 
-export type CreateBookInput = z.TypeOf<typeof createBookSchema>;
+
+export const createBookSchema = validateBookSchema.extend({
+  image: z.string().optional(),
+  hostedLink: z.string().optional(),
+});
+
+export const getSingleBookSchema = z.object({bookId:z.string()});
 
 export const createBookReview = z.object({
   userId: z.string({ required_error: "UserId is required." }),
@@ -76,3 +82,4 @@ export const createBookRating = z.object({
   rating: z.number({ required_error: "Rating is required." }),
 });
 export type createBookRatingInput = z.TypeOf<typeof createBookRating>;
+export type CreateBookInput = z.TypeOf<typeof validateBookSchema>;

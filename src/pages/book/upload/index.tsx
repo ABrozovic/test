@@ -3,14 +3,13 @@ import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { CreateBookInput, createBookSchema } from "../../schema/book.schema";
-import { onPromise } from "../../utils/promise-wrapper";
-import { trpc } from "../../utils/trpc";
-import { UploadResponse } from "../api/upload";
+import { CreateBookInput, validateBookSchema } from "../../../schema/book.schema";
+import { onPromise } from "../../../utils/promise-wrapper";
+import { trpc } from "../../../utils/trpc";
+import { UploadResponse } from "../../api/upload";
 import FormInput from "./components/formInput";
 
 async function uploadFile(files: FileList): Promise<UploadResponse> {
-  
   const formData = new FormData();
   Object.values(files).forEach((file) => {
     formData.append("file", file);
@@ -18,13 +17,12 @@ async function uploadFile(files: FileList): Promise<UploadResponse> {
   const response = await fetch("/api/upload", {
     method: "POST",
     body: formData,
-  });  
+  });
   const body = (await response.json()) as UploadResponse;
 
   if (body.status === 200) {
     return body;
   }
-  
 
   return body;
 }
@@ -40,7 +38,7 @@ const CreateBookPage: NextPage = () => {
     reset,
     formState: { errors },
   } = useForm<CreateBookInput>({
-    resolver: zodResolver(createBookSchema),
+    resolver: zodResolver(validateBookSchema),
   });
 
   //const [ setIsLoading] = useLoading(false)
@@ -66,17 +64,15 @@ const CreateBookPage: NextPage = () => {
     // e.preventDefault();
     ///mutate(values);
     //setIsLoading(true);
-   
+
     if (
       (values.image as FileList).length ||
       (values.hostedLink as FileList).length
     ) {
       if (values.hostedLink as FileList) {
-        
         values.hostedLink = (
           await uploadFile(values.hostedLink as FileList)
         ).files.toString();
-
       }
       if ((values.image as FileList).length) {
         values.image = (
@@ -88,13 +84,12 @@ const CreateBookPage: NextPage = () => {
     }
 
     mutate(values);
-    
   };
 
   return (
-    <section className="gradient-form bg-purple-100 p-1 h-[calc(100vh-4rem)] ">
+    <section className="gradient-form bg-purple-100 p-1 h-[calc(100vh-4rem)]">
       <div className="flex justify-center text-gray-800  mt-1">
-        <div className="bg-white shadow-lg rounded-lg ">
+        <div className="bg-white shadow-lg rounded-lg w-5/6">
           <div className="px-4 md:px-0 ">
             <div className="md:p-12 md:mx-6 ">
               <h4 className="text-xl font-semibold mt-1 mb-4 pb-1 text-center  ">
@@ -102,11 +97,11 @@ const CreateBookPage: NextPage = () => {
               </h4>
               <form
                 className="space-y-6"
-                
-                onSubmit={onPromise(handleSubmit(onSubmit, (e) => {
-                  
-                  console.log(e);
-                }))}
+                onSubmit={onPromise(
+                  handleSubmit(onSubmit, (e) => {
+                    console.log(e);
+                  })
+                )}
               >
                 <div className="space-y-2">
                   <FormInput
