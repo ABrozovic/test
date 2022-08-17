@@ -1,41 +1,60 @@
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
-import { createBookSchema } from "../../../schema/book.schema";
+
+import {
+  createBookSchema,
+  getSingleBookSchema,
+} from "../../../schema/book.schema";
 import { createRouter } from "../trpc/context";
 
-
-
-export const bookRouter = createRouter().mutation("create-book", {
-  input: createBookSchema.extend({image:z.string().optional(), hostedLink:z.string().optional()}),
-  async resolve({ ctx, input }) {
-    const {
-      title,
-      author,
-      description,
-      image,
-      hostedLink,
-      externalLink,
-      ownerId,
-    } = input;
-    try {
-      await ctx.prisma.book.create({
-        data: {
-          title,
-          author,
-          description,
-          image: image,
-          hostedLink,
-          externalLink,
-          ownerId,
-          isActive: false,
-        },
-      });
-    } catch (e) {
-      console.log(e);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Internal server error",
-      });
-    }
-  },
-});
+export const bookRouter = createRouter()
+  .mutation("create-book", {
+    input: createBookSchema,
+    async resolve({ ctx, input }) {
+      const {
+        title,
+        author,
+        description,
+        image,
+        hostedLink,
+        externalLink,
+        ownerId,
+      } = input;
+      try {
+        await ctx.prisma.book.create({
+          data: {
+            title,
+            author,
+            description,
+            image: image,
+            hostedLink,
+            externalLink,
+            ownerId,
+            isActive: false,
+          },
+        });
+      } catch (e) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Internal server error",
+        });
+      }
+    },
+  })
+  .query("get-single-book", {
+    input: getSingleBookSchema,
+    async resolve({ ctx, input }) {
+      if(!input.bookId)  return;
+      try {
+        return await ctx.prisma.book.findUnique({
+          where: {
+            id: input.bookId,
+          },
+        });
+      } catch (e) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Internal server error",
+        });
+      }
+    },
+  });
