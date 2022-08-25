@@ -43,13 +43,25 @@ export const bookRouter = createRouter()
   .query("get-single-book", {
     input: getSingleBookSchema,
     async resolve({ ctx, input }) {
-      if(!input.bookId)  return;
+      if (!input.bookId) return;
       try {
         return await ctx.prisma.book.findUnique({
           where: {
             id: input.bookId,
           },
         });
+      } catch (e) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Internal server error",
+        });
+      }
+    },
+  })
+  .query("get-all-books", {
+    async resolve({ ctx }) {
+      try {
+        return await ctx.prisma.book.findMany();
       } catch (e) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

@@ -7,16 +7,19 @@ import superjson from "superjson";
 import type { AppRouter } from "../server/router";
 import "../styles/globals.css";
 import { NavBar } from "./navbar";
+import { BookProvider } from "./store";
 const MyApp: AppType = ({
   Component,
   pageProps: { session, ...pageProps },
 }) => {
   return (
     <ThemeProvider attribute="class" enableSystem={false}>
-      <SessionProvider session={session}>
-        <NavBar />
-        <Component {...pageProps} />
-      </SessionProvider>
+      <BookProvider>
+        <SessionProvider session={session}>
+          <NavBar />
+          <Component {...pageProps} />
+        </SessionProvider>
+      </BookProvider>
     </ThemeProvider>
   );
 };

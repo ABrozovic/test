@@ -30,7 +30,7 @@ async function uploadFile(files: FileList): Promise<UploadResponse> {
 //   const [isLoading, setIsLoading] = React.useState(loading);
 //   return [isLoading, setIsLoading] as const;
 // }
-const CreateBookPage: NextPage = () => {
+export const CreateBookPage: NextPage = () => {
   const { data: session } = useSession();
   const {
     handleSubmit,
@@ -81,6 +81,9 @@ const CreateBookPage: NextPage = () => {
       }
 
       /* Send request to our api route */
+    }else{
+      delete values.image;
+      delete values.hostedLink;
     }
 
     mutate(values);

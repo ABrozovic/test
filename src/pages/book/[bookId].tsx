@@ -1,14 +1,14 @@
 import Error from "next/error";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import React from "react";
+import {useEffect, useState} from "react";
 import { trpc } from "../../utils/trpc";
 
 function SinglePostPage() {
   const router = useRouter();
-  const [bookId, setBookId] = React.useState("");
+  const [bookId, setBookId] = useState("");
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (router.isReady) {
       setBookId(router.query.bookId as string);
     }
@@ -18,6 +18,19 @@ function SinglePostPage() {
     ["books.get-single-book", { bookId }],
     { enabled: true }
   );
+
+  // const sendProps = async () => {
+  //   if (!data) return;
+  //   if (data.hostedLink) {
+  //     await router.push({
+  //       pathname: "/book/reader",
+  //       query: { bookPath: `${data.hostedLink}` },
+  //     });
+  //   }
+  //   if (data.externalLink){
+  //     await router.push({pathname: data.externalLink});
+  //   }
+  // };
 
   if (isLoading || bookId === "") {
     return <p>Loading...</p>;
@@ -62,19 +75,17 @@ function SinglePostPage() {
               )}
 
               <div className="flex pt-4 justify-around items-center gap-2">
-                <button
+                <a
                   className="inline-block bg-blue-500 dark:bg-slate-500  px-6 py-2.5 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:shadow-lg focus:outline-none focus:ring-0 active:shadow-lg transition duration-150 ease-in-out mb-4 w-full"
-                  type="submit"
-                  //   onClick={()=> {setValue("ownerId", "ffggf")}}
+                  href={data.hostedLink ? `/uploads/files/${data.hostedLink}` : data.externalLink ? data.externalLink : "#"}
                   data-mdb-ripple="true"
                   data-mdb-ripple-color="light"
                 >
                   Download
-                </button>
+                </a>
                 <button
                   className="inline-block bg-green-400 dark:bg-gray-800 px-6 py-2.5 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-red-700 hover:shadow-lg focus:shadow-lg focus:outline-none focus:ring-0 active:shadow-lg transition duration-150 ease-in-out mb-4 w-full"
                   type="submit"
-                  //   onClick={()=> {setValue("ownerId", "ffggf")}}
                   data-mdb-ripple="true"
                   data-mdb-ripple-color="light"
                 >

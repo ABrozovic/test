@@ -5,6 +5,19 @@ module.exports = {
 
   theme: {
     extend: {
+      animation: {
+        fadeIn: "fadeIn 0.5s",
+      },
+      keyframes: {
+        fadeIn: {
+          from: {
+            opacity: 0,
+          },
+          to: {
+            opacity: 1,
+          },
+        },
+      },
       colors: {
         transparent: "transparent",
         current: "currentColor",
@@ -14,6 +27,6 @@ module.exports = {
       },
     },
   },
-  darkMode: 'class',
-  plugins: [],
+  darkMode: "class",
+  plugins: [require("@tailwindcss/forms")],
 };
