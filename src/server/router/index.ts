@@ -4,13 +4,15 @@ import superjson from "superjson";
 import { bookRouter } from "./subroutes/book.router";
 import { authRouter } from "./subroutes/auth.router";
 import { userRouter } from "./subroutes/user.router";
+import buddyReadRouter from "./subroutes/buddyread.router";
 
 
 export const appRouter = createRouter()
   .transformer(superjson)
   .merge("books.", bookRouter)
   .merge("auth.", authRouter)
-  .merge("users.", userRouter);
+  .merge("users.", userRouter)
+  .merge("buddyReads.", buddyReadRouter)
 
 
 // export type definition of API

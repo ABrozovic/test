@@ -22,7 +22,7 @@ module.exports = {
         transparent: "transparent",
         current: "currentColor",
         darkpurple: "#260C1A",
-        lavender: "#826982",
+        lavender: "#695569",
         test: "#EB9B96",
       },
     },
