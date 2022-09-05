@@ -34,7 +34,7 @@ function SignInPage() {
     if (token?.error) {
       setError("Invalid username or password");
     } else {
-      await router.push("/api/restricted");
+      await router.push("/");
     }
   }
 

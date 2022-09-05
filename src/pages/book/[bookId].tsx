@@ -1,12 +1,41 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Button,
+  Card,
+  Center,
+  Collapse,
+  Group,
+  Modal,
+  Select,
+  Stack,
+  Text,
+  Textarea,
+  Title,
+  useMantineTheme,
+} from "@mantine/core";
+import { useSession } from "next-auth/react";
 import Error from "next/error";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { FaBook } from "react-icons/fa";
+import {
+  readingProgressInput,
+  readingProgressSchema,
+} from "../../schema/readingProgress.schema";
+import { getThemeColor } from "../../utils/themeBuilder";
 import { trpc } from "../../utils/trpc";
+import FormInput from "./upload/components/formInput";
 
 function SinglePostPage() {
   const router = useRouter();
+  const {data:session} = useSession();
   const [bookId, setBookId] = useState("");
+  const [fullyRead, setFullyRead] = useState(false);
+  const [showDescription, setShowDescription] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const theme = useMantineTheme();
 
   useEffect(() => {
     if (router.isReady) {
@@ -15,22 +44,18 @@ function SinglePostPage() {
   }, [router.isReady, router.query.bookId]);
 
   const { data, isLoading } = trpc.useQuery(
-    ["books.get-single-book", { bookId }],
+    ["books.get-single-book", { bookId, userId: session?.user?.id as string }],
     { enabled: true }
   );
-
-  // const sendProps = async () => {
-  //   if (!data) return;
-  //   if (data.hostedLink) {
-  //     await router.push({
-  //       pathname: "/book/reader",
-  //       query: { bookPath: `${data.hostedLink}` },
-  //     });
-  //   }
-  //   if (data.externalLink){
-  //     await router.push({pathname: data.externalLink});
-  //   }
-  // };
+  
+  const {
+    handleSubmit,
+    register,
+    reset,
+    formState: { errors },
+  } = useForm<readingProgressInput>({
+    resolver: zodResolver(readingProgressSchema),
+  });
 
   if (isLoading || bookId === "") {
     return <p>Loading...</p>;
@@ -39,65 +64,91 @@ function SinglePostPage() {
   if (!data) {
     return <Error statusCode={404} />;
   }
-
+console.log(data)
+  // setFullyRead(data.ReadingProgress[0]?.fullyRead as boolean);
   return (
-    <section className="gradient-form bg-purple-100 dark:bg-slate-300 p-1 h-[calc(100vh-4rem)]">
-      <div className="flex justify-center text-gray-800  mt-1">
-        <div className="bg-white shadow-lg rounded-lg w-5/6">
-          <div className="px-4 md:px-0">
-            <div className="md:p-12 md:mx-6 h-full">
-              <h4 className="text-lg font-semibold mt-1 mb-1 pb-1 text-center">
-                {data.title}
-              </h4>
-              {/* <div className="flex justify-center p-6 duration-500 border-2 border-gray-500 rounded shadow-xl motion-safe:hover:scale-105"> */}
-
+    <>
+      <Modal
+        centered
+        opened={showModal}
+        onClose={() => setShowModal(false)}
+        title="Update your reading progress"
+      >
+        <FormInput type={"text"} register={register("pagesRead")} />
+        <Group pt={15} grow>
+          <Button>Save</Button>
+          <Button variant="outline" onClick={() => setShowModal(false)}>
+            Cancel
+          </Button>
+        </Group>
+      </Modal>
+      <Card shadow="sm" p="sm" radius="md" withBorder>
+        <Stack>
+          <Title align="center" size={"sm"} pb={8}>
+            {data.title}
+          </Title>
+          <Center>
+            <Group>
               {data.image ? (
-                <div className="flex flex-col max-h-[calc(100vh-16rem)]">
-                  <div className="relative h-screen w-full">
-                    <Image
-                      className="inset-0 object-scale-down "
-                      src={`/uploads/images/${data.image}`}
-                      alt={data.title}
-                      layout="fill"
-                    />
-                  </div>
-                  <div className="p-1"></div>
-                  <div className=" w-full overflow-scroll overflow-x-hidden h-1/2 ">
-                    {data.description} {data.description} {data.description}{" "}
-                    {data.description}
-                  </div>
-                </div>
+                <Image
+                  objectFit={"contain"}
+                  src={data.image}
+                  width={100}
+                  height={150}
+                  alt="The cover of a book"
+                />
               ) : (
-                <div className=" w-1/2 overflow-scroll overflow-x-hidden max-h-[calc(100vh-16rem)] ">
-                  {data.description} {data.description} {data.description}{" "}
-                  {data.description}
+                <div
+                  style={{ height: 150, width: 100 }}
+                  className="flex flex-col items-center justify-center gap-4 pt-4 border-slate-200 border "
+                >
+                  <FaBook
+                    color={getThemeColor(theme.colorScheme)}
+                    className="text-4xl"
+                  />
+                  <Text color="dimmed" lineClamp={1} size="sm">
+                    No cover
+                  </Text>
                 </div>
               )}
-
-              <div className="flex pt-4 justify-around items-center gap-2">
-                <a
-                  className="inline-block bg-blue-500 dark:bg-slate-500  px-6 py-2.5 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:shadow-lg focus:outline-none focus:ring-0 active:shadow-lg transition duration-150 ease-in-out mb-4 w-full"
-                  href={data.hostedLink ? `/uploads/files/${data.hostedLink}` : data.externalLink ? data.externalLink : "#"}
-                  data-mdb-ripple="true"
-                  data-mdb-ripple-color="light"
-                >
-                  Download
-                </a>
-                <button
-                  className="inline-block bg-green-400 dark:bg-gray-800 px-6 py-2.5 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-red-700 hover:shadow-lg focus:shadow-lg focus:outline-none focus:ring-0 active:shadow-lg transition duration-150 ease-in-out mb-4 w-full"
-                  type="submit"
-                  data-mdb-ripple="true"
-                  data-mdb-ripple-color="light"
-                >
-                  Discuss
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
+              <Stack justify="space-between" spacing="lg" align="stretch">
+                <Group align={"center"} grow>
+                  <div>
+                    <Text size="sm" weight="bold">
+                      Pages read
+                    </Text>
+                    <Text size="sm" weight="bold">
+                      0 pages
+                    </Text>
+                  </div>
+                  <Button onClick={() => setShowModal(true)}>Update</Button>
+                </Group>
+                <Select                
+                  size="sm"
+                  label="Status"
+                  color={getThemeColor(theme.colorScheme)}
+                  data={[
+                    { value: "reading", label: "Reading" },
+                    { value: "read", label: "Read" },
+                  ]}
+                  defaultValue= {fullyRead ? "read": "reading"} 
+                  dropdownPosition="bottom"
+                />
+              </Stack>
+            </Group>
+          </Center>
+          <Button
+            fullWidth
+            onClick={() => setShowDescription((value) => !value)}
+          >
+            Book Description
+          </Button>
+          <Collapse in={showDescription}>
+            <Textarea readOnly value={data.description?.toString()}/>
+          </Collapse>
+        </Stack>
+      </Card>
+    </>
     // <div>
     //   <h1>{data?.title}</h1>
     //   <p>{data?.description}</p>

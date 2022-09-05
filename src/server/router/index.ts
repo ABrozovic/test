@@ -5,6 +5,7 @@ import { bookRouter } from "./subroutes/book.router";
 import { authRouter } from "./subroutes/auth.router";
 import { userRouter } from "./subroutes/user.router";
 import buddyReadRouter from "./subroutes/buddyread.router";
+import { commentRouter } from "./subroutes/comments.router";
 
 
 export const appRouter = createRouter()
@@ -12,7 +13,8 @@ export const appRouter = createRouter()
   .merge("books.", bookRouter)
   .merge("auth.", authRouter)
   .merge("users.", userRouter)
-  .merge("buddyReads.", buddyReadRouter)
+  .merge("buddyreads.", buddyReadRouter)
+  .merge("comments.", commentRouter)
 
 
 // export type definition of API

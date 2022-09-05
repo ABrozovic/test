@@ -1,7 +1,7 @@
 // src/utils/trpc.ts
-import type { AppRouter } from "../server/router";
 import { createReactQueryHooks } from "@trpc/react";
-import type { inferProcedureOutput, inferProcedureInput } from "@trpc/server";
+import type { inferProcedureInput, inferProcedureOutput } from "@trpc/server";
+import type { AppRouter } from "../server/router";
 
 export const trpc = createReactQueryHooks<AppRouter>();
 
@@ -24,3 +24,9 @@ export type inferMutationOutput<
 export type inferMutationInput<
   TRouteKey extends keyof AppRouter["_def"]["mutations"]
 > = inferProcedureInput<AppRouter["_def"]["mutations"][TRouteKey]>;
+
+export type Comment = inferQueryOutput<"comments.all-comments">[number];
+
+export type CommentWithChildren = Comment & {
+  children: Array<CommentWithChildren>;
+};

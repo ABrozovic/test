@@ -1,3 +1,4 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Accordion,
   Button,
@@ -12,23 +13,22 @@ import {
   Text,
   TextInput,
   Title,
-  useMantineTheme
+  useMantineTheme,
 } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
 import { useSession } from "next-auth/react";
-import { useForm } from "react-hook-form";
-import { CreateBookInput, validateBookSchema } from "../schema/book.schema";
-import { onPromise } from "../utils/promise-wrapper";
-import { trpc } from "../utils/trpc";
-import FormInput from "./book/upload/components/formInput";
-import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { FaBook, FaEdit, FaUpload } from "react-icons/fa";
 import { GiMagnifyingGlass } from "react-icons/gi";
-import { UploadResponse } from "./api/upload";
-import { BookSearch, Item } from "./test";
+import { CreateBookInput, validateBookSchema } from "../schema/book.schema";
+import { onPromise } from "../utils/promise-wrapper";
 import { getThemeColor } from "../utils/themeBuilder";
+import { trpc } from "../utils/trpc";
+import { UploadResponse } from "./api/upload";
+import FormInput from "./book/upload/components/formInput";
+import { BookSearch, Item } from "./test";
 function api<T>(url: string): Promise<T> {
   return fetch(url).then((response) => {
     if (!response.ok) {
@@ -109,9 +109,8 @@ function BuddyRead() {
     resolver: zodResolver(validateBookSchema),
   });
 
-  
   const [bookDownloadType, setBookDownloadType] = useState("url");
-  const { mutate, error } = trpc.useMutation(["books.create-book"], {
+  const { isLoading, mutate, error } = trpc.useMutation(["books.create-book"], {
     onSuccess: () => {
       //setIsLoading(false);
     },
@@ -134,7 +133,7 @@ function BuddyRead() {
     reset({
       ownerId: session?.user?.id,
       title: bookData.title,
-      author: bookData.authors.join(", "),
+      author: bookData.authors?.join(", "),
       image: bookArray[activePage]?.volumeInfo.imageLinks.thumbnail,
       description: bookData.description ? bookData.description : "",
     });
@@ -142,11 +141,6 @@ function BuddyRead() {
   };
 
   const onSubmit = async (values: CreateBookInput) => {
-    /* Prevent form from submitting by default */
-    // e.preventDefault();
-    ///mutate(values);
-    //setIsLoading(true);
-
     if (
       (values.image as FileList).length ||
       (values.hostedLink as FileList).length
@@ -156,17 +150,15 @@ function BuddyRead() {
           await uploadFile(values.hostedLink as FileList)
         ).files.toString();
       }
-      if ((values.image as FileList).length) {
-        values.image = (
-          await uploadFile(values.image as FileList)
-        ).files.toString();
-      }
+      // if ((values.image as FileList).length) {
+      //   values.image = (
+      //     await uploadFile(values.image as FileList)
+      //   ).files.toString();
+      // }
 
       /* Send request to our api route */
-    } else {
-      delete values.image;
-      delete values.hostedLink;
     }
+    console.log("after", values);
 
     mutate(values);
   };
@@ -188,7 +180,14 @@ function BuddyRead() {
           }}
         >
           <Accordion.Item value="Google">
-            <Accordion.Control icon={<FaBook color={getThemeColor(theme.colorScheme)} className="text-lavender" />}>
+            <Accordion.Control
+              icon={
+                <FaBook
+                  color={getThemeColor(theme.colorScheme)}
+                  className="text-lavender"
+                />
+              }
+            >
               From Google Books
             </Accordion.Control>
             <Accordion.Panel>
@@ -220,7 +219,7 @@ function BuddyRead() {
                         className="flex flex-col items-center justify-center gap-4 pt-4"
                       >
                         <GiMagnifyingGlass
-                        color={getThemeColor(theme.colorScheme)}
+                          color={getThemeColor(theme.colorScheme)}
                           className="text-4xl"
                         />
                         <Text color="dimmed" lineClamp={1} size="sm">
@@ -230,7 +229,10 @@ function BuddyRead() {
                     </>
                   ) : (
                     <>
-                      <LoadingOverlay visible={searchLoading} overlayBlur={2} />
+                      <LoadingOverlay
+                        visible={searchLoading || isLoading}
+                        overlayBlur={2}
+                      />
                       {(bookArray[activePage - 1]?.volumeInfo?.imageLinks
                         ?.thumbnail as string) ? (
                         <Image
@@ -287,7 +289,10 @@ function BuddyRead() {
             <Accordion.Item value="Data">
               <Accordion.Control
                 icon={
-                  <FaEdit color={getThemeColor(theme.colorScheme)} className={clsx(themeIsLight() && `text-lavender`)} />
+                  <FaEdit
+                    color={getThemeColor(theme.colorScheme)}
+                    className={clsx(themeIsLight() && `text-lavender`)}
+                  />
                 }
               >
                 Add/Edit Book Data
@@ -327,7 +332,7 @@ function BuddyRead() {
                   <label htmlFor="downloadLinkType">
                     <div className="flex items-center gap-3">
                       <FaUpload
-                      color={getThemeColor(theme.colorScheme)}
+                        color={getThemeColor(theme.colorScheme)}
                         className={clsx(themeIsLight() && `text-lavender`)}
                       />
                       Upload/Link:

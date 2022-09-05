@@ -33,6 +33,7 @@ export const bookRouter = createRouter()
           },
         });
       } catch (e) {
+        console.log(e);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Internal server error",
@@ -48,6 +49,9 @@ export const bookRouter = createRouter()
         return await ctx.prisma.book.findUnique({
           where: {
             id: input.bookId,
+          },
+          include: {
+            buddyReads: true,
           },
         });
       } catch (e) {
