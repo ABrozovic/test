@@ -13,7 +13,6 @@ import {
   Title,
   useMantineTheme,
 } from "@mantine/core";
-import { useSession } from "next-auth/react";
 import Error from "next/error";
 import Image from "next/image";
 import { useRouter } from "next/router";
@@ -30,9 +29,9 @@ import FormInput from "./upload/components/formInput";
 
 function SinglePostPage() {
   const router = useRouter();
-  const {data:session} = useSession();
+  // const {data:session} = useSession();
   const [bookId, setBookId] = useState("");
-  const [fullyRead, setFullyRead] = useState(false);
+  const [fullyRead, _setFullyRead] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const theme = useMantineTheme();
@@ -44,16 +43,11 @@ function SinglePostPage() {
   }, [router.isReady, router.query.bookId]);
 
   const { data, isLoading } = trpc.useQuery(
-    ["books.get-single-book", { bookId, userId: session?.user?.id as string }],
+    ["books.get-single-book", { bookId }],
     { enabled: true }
   );
-  
-  const {
-    handleSubmit,
-    register,
-    reset,
-    formState: { errors },
-  } = useForm<readingProgressInput>({
+
+  const { register } = useForm<readingProgressInput>({
     resolver: zodResolver(readingProgressSchema),
   });
 
@@ -64,7 +58,7 @@ function SinglePostPage() {
   if (!data) {
     return <Error statusCode={404} />;
   }
-console.log(data)
+  console.log(data);
   // setFullyRead(data.ReadingProgress[0]?.fullyRead as boolean);
   return (
     <>
@@ -123,7 +117,7 @@ console.log(data)
                   </div>
                   <Button onClick={() => setShowModal(true)}>Update</Button>
                 </Group>
-                <Select                
+                <Select
                   size="sm"
                   label="Status"
                   color={getThemeColor(theme.colorScheme)}
@@ -131,7 +125,7 @@ console.log(data)
                     { value: "reading", label: "Reading" },
                     { value: "read", label: "Read" },
                   ]}
-                  defaultValue= {fullyRead ? "read": "reading"} 
+                  defaultValue={fullyRead ? "read" : "reading"}
                   dropdownPosition="bottom"
                 />
               </Stack>
@@ -144,7 +138,7 @@ console.log(data)
             Book Description
           </Button>
           <Collapse in={showDescription}>
-            <Textarea readOnly value={data.description?.toString()}/>
+            <Textarea readOnly value={data.description?.toString()} />
           </Collapse>
         </Stack>
       </Card>

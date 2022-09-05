@@ -2,12 +2,17 @@ import { CustomUser, ReadingProgress } from "@prisma/client";
 import { Comment, CommentWithChildren } from "../utils/trpc";
 
 function formComments(
-  comments: Array<Comment>,  
+  comments: Array<Comment>,
   bookId: string,
-  userData?: CustomUser &{ReadingProgress: ReadingProgress[]} | null | undefined
+  userData?:
+    | (CustomUser & { ReadingProgress: ReadingProgress[] })
+    | null
+    | undefined
 ) {
-  const userReadingProgress = userData?.ReadingProgress.find((book)=>book.bookId === bookId)?.pagesRead || 0;
-  const map = new Map();  
+  const userReadingProgress =
+    userData?.ReadingProgress.find((book) => book.bookId === bookId)
+      ?.pagesRead || 0;
+  const map = new Map();
 
   const roots: Array<CommentWithChildren> = [];
 
@@ -29,10 +34,10 @@ function formComments(
 
       continue;
     }
-      
+
     if (
-      comments[i]?.readingProgress! <= userReadingProgress &&
-      !comments[i]?.parentId
+      comments[i]?.readingProgress ||
+      (0 <= userReadingProgress && !comments[i]?.parentId)
     ) {
       roots.push(comments[i] as CommentWithChildren);
     } else if (comments[i]?.parentId || comments[i]?.userId === userData?.id) {

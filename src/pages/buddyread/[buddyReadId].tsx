@@ -26,6 +26,7 @@ import {
   readingProgressInput,
   readingProgressSchema,
 } from "../../schema/readingProgress.schema";
+import { onPromise } from "../../utils/promise-wrapper";
 import { getThemeColor } from "../../utils/themeBuilder";
 import { trpc } from "../../utils/trpc";
 import FormInput from "../book/upload/components/formInput";
@@ -51,15 +52,15 @@ function SinglePostPage() {
     ["buddyreads.get-single-buddyread", { buddyReadId }],
     { enabled: true }
   );
-  const { data: comments, isLoading: commentsIsLoading } = trpc.useQuery([
+  const { data: comments, isLoading: _commentsIsLoading } = trpc.useQuery([
     "comments.all-comments",
     { buddyReadId },
   ]);
   const utils = trpc.useContext();
-  const { mutate, isLoading: isUpdatingUser } = trpc.useMutation(
+  const { mutate, isLoading: _isUpdatingUser } = trpc.useMutation(
     "users.update-self-readingprogress",
     {
-      onSuccess: async (data) => {
+      onSuccess: async () => {
         await utils.invalidateQueries(["users.get-self"]);
         await utils.invalidateQueries([
           "buddyreads.get-single-buddyread",
@@ -67,14 +68,11 @@ function SinglePostPage() {
         ]);
         setShowModal(false)
       },
-      onError: async (error) => {
-        console.log(error);
-      },
+      
     }
   );
-  type lol={
-    readingProgress:any
-  }
+
+
   useEffect(() => {
     setReadingProgress(
       userData?.ReadingProgress.find((book) => book.bookId === data?.bookId)
@@ -88,17 +86,17 @@ function SinglePostPage() {
       fullyRead: currentFullyRead,
     });
   }, [data]);
-  useEffect(() => {}, [userData]);
+  
 
   const {
     handleSubmit,
     register,
     reset,
-    formState: { errors },
+    // formState: { errors },
   } = useForm<readingProgressInput>({
     resolver: zodResolver(readingProgressSchema),
   });
-  const onSubmit = async (values: readingProgressInput) => {
+  const onSubmit =  (values: readingProgressInput) => {
     const payload = {
       bookId: data?.bookId,
       fullyRead: values.fullyRead,
@@ -124,9 +122,9 @@ function SinglePostPage() {
         title="Update your reading progress"
       >
         <form
-          onSubmit={handleSubmit(onSubmit, (e) => {
+          onSubmit={onPromise(handleSubmit(onSubmit, (e) => {
             console.log(e);
-          })}
+          }))}
         >
           <FormInput
             type={"number"}
