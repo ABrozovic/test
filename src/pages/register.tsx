@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { customUserAuthSchema, RegisterUserInput } from "../schema/user.schema";
 import { onPromise } from "../utils/promise-wrapper";
 import { trpc } from "../utils/trpc";
-import FormInput from "./book/upload/components/formInput";
+import FormInput from "../components/formInput";
 
 function RegisterPage() {
   const {

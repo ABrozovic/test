@@ -12,13 +12,18 @@ export const commentRouter = createRouter()
 
       try {
         const comments = await ctx.prisma.comment.findMany({
-          where: {                        
+          where: {
             buddyRead: {
               id: buddyReadId,
             },
           },
-          include: {            
-            user: true,                                        
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
           },
         });
 

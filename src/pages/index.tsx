@@ -24,6 +24,7 @@ const Home: NextPage = () => {
   const { data, isLoading } = trpc.useQuery([
     "buddyreads.get-active-buddyreads",
   ]);
+  
   return (
     <>
       <Head>
@@ -93,6 +94,7 @@ const BuddyReadDisplayCard = ({
 }) => {
   const theme = useMantineTheme();
   const router = useRouter();
+  const {mutate} = trpc.useMutation(["buddyreads.join-buddyread"])
   return (
     <>
       <Card onClick={() => console.log(id)} withBorder>
@@ -126,7 +128,9 @@ const BuddyReadDisplayCard = ({
                 </>
               </div>
             )}
-            <Button onClick={() => void router.push(`/buddyread/${id}`)}>Join</Button>
+            <Button onClick={ () => {
+              mutate({buddyReadId: id})
+              void router.push(`/buddyread/${id}`)}}>Join</Button>
           </Stack>
         </Center>
       </Card>

@@ -8,56 +8,52 @@ import {
   TypographyStylesProvider,
   useMantineTheme,
 } from "@mantine/core";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { getThemeColor } from "../../utils/themeBuilder";
 import { CommentWithChildren } from "../../utils/trpc";
 import CommentForm from "./CommentForm";
-function getReplyCountText(count: number) {
-  if (count === 0) {
-    return "No replies";
-  }
 
-  if (count === 1) {
-    return "1 reply";
-  }
-
-  return `${count} replies`;
-}
 function CommentActions({
   commentId,
   replyCount,
-  useReplies,
+  useOpened,
 }: {
   commentId: string;
   replyCount: number;
-  useReplies: [value:boolean, set:(value: boolean) => void];
+  // useReplies: [value:boolean, set:(value: boolean) => void];
+  useOpened: {
+    opened: boolean;
+    setOpened: Dispatch<SetStateAction<boolean>>;
+  };
   // useReplies: [boolean, React.Dispatch<React.SetStateAction<boolean>>];
 }) {
   const [replying, setReplying] = useState(false);
-  const [showReplies, setShowReplies] = useReplies;
+  // const [showReplies, setShowReplies] = useReplies;
   const theme = useMantineTheme();
   return (
     <>
       <Group position="apart" mt="md" mb={5}>
-        <Text
-          size={"xs"}
-          className="cursor-pointer"
-          color={getThemeColor(theme.colorScheme)}
-          underline
-          onClick={() => {
-            setShowReplies(!showReplies);
-            setReplying(false);
-          }}
-        >
-          {getReplyCountText(replyCount)}
-        </Text>
+        {replyCount > 0 ? (
+          <Text
+            size={"xs"}
+            className="cursor-pointer"
+            color={getThemeColor(theme.colorScheme)}
+            underline
+            onClick={() => useOpened.setOpened(!useOpened.opened)}
+          >
+            {`Show replies(${replyCount})`}
+          </Text>
+        ) : (
+          <div></div>
+        )}
+
         <Button
           size="xs"
           mr="xs"
           variant="outline"
           compact
           onClick={() => {
-            setShowReplies(!replying);
+            useOpened.setOpened(!replying);
             setReplying(!replying);
           }}
         >
@@ -73,7 +69,7 @@ function CommentActions({
 }
 
 function Comment({ comment }: { comment: CommentWithChildren }) {
-  const [showReplies, setShowReplies] = useState(false);
+  const [opened, setOpened] = useState(false);
   return (
     <>
       <Paper
@@ -87,9 +83,17 @@ function Comment({ comment }: { comment: CommentWithChildren }) {
           paddingLeft: "0.5rem",
           marginRight: -1,
           overflow: "hidden",
+          "&:before": {
+            content: '""',
+            backgroundColor: "green",
+            height: "1.5rem",
+            width: "100%",
+            position: "absolute",
+            left: 0,
+          },
         })}
       >
-        <Box
+        {/* <Box
           sx={() => ({
             backgroundColor: "red",
             height: "1.5rem",
@@ -97,7 +101,7 @@ function Comment({ comment }: { comment: CommentWithChildren }) {
             position: "absolute",
             left: 0,
           })}
-        ></Box>
+        ></Box> */}
         <Box
           sx={() => ({
             display: "flex",
@@ -138,13 +142,13 @@ function Comment({ comment }: { comment: CommentWithChildren }) {
         <CommentActions
           commentId={comment.id}
           replyCount={comment.children.length}
-          useReplies={[showReplies, setShowReplies]}
+          useOpened={{ opened, setOpened }}
         />
-        <Collapse in={showReplies}>
-          {comment.children && comment.children.length > 0 && (
+        {comment.children && comment.children.length > 0 && (
+          <Collapse in={opened}>
             <ListComments comments={comment.children} />
-          )}
-        </Collapse>
+          </Collapse>
+        )}
       </Paper>
     </>
   );

@@ -29,15 +29,19 @@ import {
 import { onPromise } from "../../utils/promise-wrapper";
 import { getThemeColor } from "../../utils/themeBuilder";
 import { trpc } from "../../utils/trpc";
-import FormInput from "../book/upload/components/formInput";
+import FormInput from "../../components/formInput";
 
 function SinglePostPage() {
   const router = useRouter();
   const [buddyReadId, setBuddyReadId] = useState("");
-  const [fullyRead, setFullyRead] = useState(false);
-  const [readingProgress, setReadingProgress] = useState(0);
+
+  const [readingProgress, setReadingProgress] = useState({
+    pagesRead: 0,
+    fullyRead: true,
+  });
   const [showDescription, setShowDescription] = useState(false);
   const [showModal, setShowModal] = useState(false);
+
   const theme = useMantineTheme();
 
   useEffect(() => {
@@ -45,48 +49,36 @@ function SinglePostPage() {
       setBuddyReadId(router.query.buddyReadId as string);
     }
   }, [router.isReady, router.query.buddyReadId]);
-
-  const { data: userData } = trpc.useQuery(["users.get-self"]);
+  const utils = trpc.useContext();
 
   const { data, isLoading } = trpc.useQuery(
     ["buddyreads.get-single-buddyread", { buddyReadId }],
     { enabled: true }
   );
-  const { data: comments, isLoading: _commentsIsLoading } = trpc.useQuery([
-    "comments.all-comments",
-    { buddyReadId },
-  ]);
-  const utils = trpc.useContext();
-  const { mutate, isLoading: _isUpdatingUser } = trpc.useMutation(
-    "users.update-self-readingprogress",
-    {
-      onSuccess: async () => {
-        await utils.invalidateQueries(["users.get-self"]);
-        await utils.invalidateQueries([
-          "buddyreads.get-single-buddyread",
-          { buddyReadId },
-        ]);
-        setShowModal(false)
-      },
-      
-    }
-  );
-
+  const { mutate } = trpc.useMutation("buddyreads.update-reading-progress", {
+    onSuccess: async () => {
+      await utils.invalidateQueries([
+        "buddyreads.get-single-buddyread",
+        { buddyReadId },
+      ]);
+      setShowModal(false);
+    },
+  });
 
   useEffect(() => {
-    setReadingProgress(
-      userData?.ReadingProgress.find((book) => book.bookId === data?.bookId)
-        ?.pagesRead || 0
+    const currentReadingProgress = data?.user[0]?.ReadingProgress.find(
+      (book) => book.bookId === data?.bookId
     );
-    const currentFullyRead =
-      userData?.ReadingProgress.find((book) => book.bookId === data?.bookId)
-        ?.fullyRead || false;
-    setFullyRead(currentFullyRead);
+    setReadingProgress({
+      pagesRead: currentReadingProgress?.pagesRead ?? 0,
+      fullyRead: currentReadingProgress?.fullyRead ?? true,
+    });
+
     reset({
-      fullyRead: currentFullyRead,
+      fullyRead: readingProgress.fullyRead,
+      bookId: data?.bookId,
     });
   }, [data]);
-  
 
   const {
     handleSubmit,
@@ -96,11 +88,15 @@ function SinglePostPage() {
   } = useForm<readingProgressInput>({
     resolver: zodResolver(readingProgressSchema),
   });
-  const onSubmit =  (values: readingProgressInput) => {
+  const onSubmit = (values: readingProgressInput) => {
+    if (!data) return;
     const payload = {
-      bookId: data?.bookId,
-      fullyRead: values.fullyRead,
-      pagesRead: values.pagesRead,
+      buddyReadId,
+      progress: {
+        bookId: data.bookId,
+        fullyRead: readingProgress.fullyRead,
+        pagesRead: values.pagesRead,
+      },
     };
     mutate(payload);
   };
@@ -122,9 +118,11 @@ function SinglePostPage() {
         title="Update your reading progress"
       >
         <form
-          onSubmit={onPromise(handleSubmit(onSubmit, (e) => {
-            console.log(e);
-          }))}
+          onSubmit={onPromise(
+            handleSubmit(onSubmit, (e) => {
+              console.log(e);
+            })
+          )}
         >
           <FormInput
             type={"number"}
@@ -168,18 +166,24 @@ function SinglePostPage() {
                     No cover
                   </Text>
                 </div>
-              )}
+              )}              
               <Stack justify="space-between" spacing="lg">
                 <Select
                   mb={"md"}
                   size="sm"
                   label="Status"
                   color={getThemeColor(theme.colorScheme)}
+                  onChange={(e) => {
+                    setReadingProgress((prev) => ({
+                      ...prev,
+                      fullyRead: e === "read" ? true : false,
+                    }));
+                  }}
+                  value={readingProgress.fullyRead ? "read" : "reading"}
                   data={[
                     { value: "reading", label: "Reading" },
                     { value: "read", label: "Read" },
                   ]}
-                  defaultValue={fullyRead ? "read" : "reading"}
                   dropdownPosition="bottom"
                 />
                 <Group grow>
@@ -188,7 +192,7 @@ function SinglePostPage() {
                       Pages read
                     </Text>
                     <Text size="sm" weight="bold">
-                      {`${readingProgress.toString()} pages`}
+                      {`${readingProgress.pagesRead} pages`}
                     </Text>
                   </div>
                   <Button onClick={() => setShowModal(true)}>Update</Button>
@@ -210,11 +214,12 @@ function SinglePostPage() {
 
       <Card p={"xs"} withBorder shadow={"sm"}>
         <CommentForm />
-        {data && (
+        {data && <ListComments comments={formComments(data.comment || [])} />}
+        {/* {data && (
           <ListComments
             comments={formComments(comments || [], data.bookId, userData)}
           />
-        )}
+        )} */}
       </Card>
     </>
     // <div>

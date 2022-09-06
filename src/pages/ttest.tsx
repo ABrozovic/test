@@ -26,9 +26,10 @@ import { CreateBookInput, validateBookSchema } from "../schema/book.schema";
 import { onPromise } from "../utils/promise-wrapper";
 import { getThemeColor } from "../utils/themeBuilder";
 import { trpc } from "../utils/trpc";
-import { UploadResponse } from "./api/upload";
-import FormInput from "./book/upload/components/formInput";
-import { BookSearch, Item } from "./test";
+// import { UploadResponse } from "./api/upload";
+import FormInput from "../components/formInput";
+import { Item, BookSearch } from "../schema/googleBooks.schema";
+
 function api<T>(url: string): Promise<T> {
   return fetch(url).then((response) => {
     if (!response.ok) {
@@ -37,23 +38,23 @@ function api<T>(url: string): Promise<T> {
     return response.json() as Promise<T>;
   });
 }
-async function uploadFile(files: FileList): Promise<UploadResponse> {
-  const formData = new FormData();
-  Object.values(files).forEach((file) => {
-    formData.append("file", file);
-  });
-  const response = await fetch("/api/upload", {
-    method: "POST",
-    body: formData,
-  });
-  const body = (await response.json()) as UploadResponse;
+// async function uploadFile(files: FileList): Promise<UploadResponse> {
+//   const formData = new FormData();
+//   Object.values(files).forEach((file) => {
+//     formData.append("file", file);
+//   });
+//   const response = await fetch("/api/upload", {
+//     method: "POST",
+//     body: formData,
+//   });
+//   const body = (await response.json()) as UploadResponse;
 
-  if (body.status === 200) {
-    return body;
-  }
+//   if (body.status === 200) {
+//     return body;
+//   }
 
-  return body;
-}
+//   return body;
+// }
 
 function BuddyRead() {
   const [activePage, setPage] = useState(1);
@@ -140,16 +141,16 @@ function BuddyRead() {
     setAccordion("Data");
   };
 
-  const onSubmit = async (values: CreateBookInput) => {
-    if (
-      (values.image as FileList).length ||
-      (values.hostedLink as FileList).length
-    ) {
-      if (values.hostedLink as FileList) {
-        values.hostedLink = (
-          await uploadFile(values.hostedLink as FileList)
-        ).files.toString();
-      }
+  const onSubmit =  (values: CreateBookInput) => {
+    // if (
+    //   (values.image as FileList).length ||
+    //   (values.hostedLink as FileList).length
+    // ) {
+    //   if (values.hostedLink as FileList) {
+    //     values.hostedLink = (
+    //       await uploadFile(values.hostedLink as FileList)
+    //     ).files.toString();
+    //   }
       // if ((values.image as FileList).length) {
       //   values.image = (
       //     await uploadFile(values.image as FileList)
@@ -157,7 +158,7 @@ function BuddyRead() {
       // }
 
       /* Send request to our api route */
-    }
+    // }
     console.log("after", values);
 
     mutate(values);

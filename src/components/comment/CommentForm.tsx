@@ -60,8 +60,8 @@ function CommentsForm({
       });
       setComment("");
 
-      await utils.invalidateQueries(["comments.all-comments", { buddyReadId }]);
-      // await utils.invalidateQueries(["buddyreads.get-single-buddyread", { buddyReadId }]);
+      // await utils.invalidateQueries(["comments.all-comments", { buddyReadId }]);
+      await utils.invalidateQueries(["buddyreads.get-single-buddyread", { buddyReadId }]);
     },
   });
   return (
@@ -123,4 +123,5 @@ function CommentsForm({
     </>
   );
 }
+
 export default CommentsForm;
