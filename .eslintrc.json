@@ -28,15 +28,15 @@
     "sourceType": "module"
   },
   "rules": {
-    // "@typescript-eslint/no-misused-promises": [
-    //   "error",
-    //   {
-    //     "checksVoidReturn": {
-    //       "arguments": true,
-    //       "attributes": false
-    //     }
-    //   }
-    // ],
+    "@typescript-eslint/no-misused-promises": [
+      "error",
+      {
+        "checksVoidReturn": {
+          "arguments": true,
+          "attributes": false
+        }
+      }
+    ],
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": [
       "error",

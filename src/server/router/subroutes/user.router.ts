@@ -86,25 +86,25 @@ export const userRouter = createRouter()
   .mutation("update-self-readingprogress", {
     input: readingProgressSchema,
     async resolve({ ctx, input }) {
-      const user = ctx.session?.user;
-      console.log(user, input);
+      const userId = ctx.session?.user?.id as string;
+
       try {
         return await ctx.prisma.customUser.update({
-          where: { id: user?.id as string },
+          where: { id: userId},
           data: {
             ReadingProgress: {
               connectOrCreate: [
                 {
                   where: {
                     userId_bookId: {
-                      userId: user?.id as string,
-                      bookId: input.bookId as string,
+                      userId,
+                      bookId: input.bookId ,
                     },
                   },
                   create: {
                     fullyRead: input.fullyRead,
                     pagesRead: input.pagesRead,
-                    bookId: input.bookId as string,
+                    bookId: input.bookId ,
                   },
                 },
               ],
@@ -112,14 +112,14 @@ export const userRouter = createRouter()
               update: {
                 where: {
                   userId_bookId: {
-                    userId: user?.id as string,
-                    bookId: input.bookId as string,
+                    userId,
+                    bookId: input.bookId ,
                   },
                 },
                 data: {
                   fullyRead: input.fullyRead,
                   pagesRead: input.pagesRead,
-                  bookId: input.bookId as string,
+                  bookId: input.bookId 
                 },
               },
             },
