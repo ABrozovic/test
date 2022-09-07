@@ -84,35 +84,36 @@ model Book {
   description     String?           @db.Text
   image           String?
   rating          Rating[]
-  comments        Comment[]
   owner           CustomUser        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId         String
   ReadingProgress ReadingProgress[]
 }
 
 model ReadingProgress {
-  book     Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  user     CustomUser @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bookId   String
-  userId   String
-  progress Int
+  book      Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  user      CustomUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookId    String
+  userId    String
+  pagesRead Int        @default(0)
+  fullyRead Boolean    @default(false)
 
   @@id([userId, bookId])
 }
 
 model Comment {
-  id        String     @id @default(cuid())
-  user      CustomUser @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  book      Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  bookId    String
-  message   String
-  parent    Comment?   @relation("ParentChild", fields: [parentId], references: [id], onDelete: Cascade)
-  children  Comment[]  @relation("ParentChild")
-  parentId  String?
-  likes     Like[]
+  id              String     @id @default(cuid())
+  user            CustomUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  buddyRead       BuddyRead  @relation(fields: [buddyReadId], references: [id], onDelete: Cascade)
+  buddyReadId     String
+  message         String
+  parent          Comment?   @relation("ParentChild", fields: [parentId], references: [id], onDelete: Cascade)
+  children        Comment[]  @relation("ParentChild")
+  parentId        String?
+  readingProgress Int        @default(0)
+  likes           Like[]
 }
 
 model Like {
@@ -135,21 +136,19 @@ model Rating {
 }
 
 model BuddyRead {
-  id                         String                    @id @default(uuid())
-  bookId                     String
-  startDate                  DateTime                  @default(now())
-  endDate                    DateTime                  @default(dbgenerated("NOW() + interval '30 day'"))
-  user                       CustomUser[]
-  book                       Book                      @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  ReadingSessionCollection   ReadingSessionCollection? @relation(fields: [readingSessionCollectionId], references: [id], onDelete: Cascade)
-  readingSessionCollectionId String
+  id        String       @id @default(cuid())
+  bookId    String
+  startDate DateTime     @default(now())
+  endDate   DateTime     @default(dbgenerated("NOW() + interval '30 day'"))
+  user      CustomUser[]
+  book      Book         @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  comment   Comment[]
 
   @@map("ReadingSession")
 }
 
 model ReadingSessionCollection {
-  id         String      @id @default(cuid())
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  BuddyReads BuddyRead[]
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

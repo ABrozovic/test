@@ -7,21 +7,26 @@ import {
   Paper,
   Stack,
   Text,
-  useMantineTheme,
+  useMantineTheme
 } from "@mantine/core";
 import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
+import { useRouter } from "next/router";
 import { CgSmileNone } from "react-icons/cg";
 import { FaBook } from "react-icons/fa";
+import AppShellLoader from "../components/apshell/loader";
 import { getThemeColor } from "../utils/themeBuilder";
 import { trpc } from "../utils/trpc";
 
 const Home: NextPage = () => {
   const theme = useMantineTheme();
   const { data, isLoading } = trpc.useQuery([
-    "buddyReads.get-active-buddyreads",
+    "buddyreads.get-active-buddyreads",
   ]);
+  if(isLoading)
+    return <AppShellLoader/>
+  
   return (
     <>
       <Head>
@@ -31,10 +36,17 @@ const Home: NextPage = () => {
       </Head>
       <Paper>
         <Group position="center">
-          {/* <LoadingOverlay visible={isLoading} overlayBlur={9} /> */}
+          
 
           {data && data?.length > 0 && !isLoading ? (
-            <></>
+            data.map((buddyRead) => (
+              <BuddyReadDisplayCard
+                title={buddyRead.book.title}
+                image={buddyRead.book.image ?? undefined}
+                id={buddyRead.id}
+                key={buddyRead.id}
+              />
+            ))
           ) : (
             <div style={{ height: 300, width: 250 }}>
               <Stack align={"stretch"}>
@@ -73,48 +85,55 @@ const Home: NextPage = () => {
 //   documentation,
 // }: TechnologyCardProps) => {
 
-const _BuddyReadDisplayCard = ({
+const BuddyReadDisplayCard = ({
   image,
   title,
   id,
 }: {
   image?: string;
   title: string;
-  id?: string;
+  id: string;
 }) => {
   const theme = useMantineTheme();
+  const router = useRouter();
+  const {mutate} = trpc.useMutation(["buddyreads.join-buddyread"])
   return (
     <>
       <Card onClick={() => console.log(id)} withBorder>
         <Center>
-          {image ? (
-            <Image
-              objectFit={"contain"}
-              src={image}
-              width={200}
-              height={250}
-              alt="The cover of a book"
-            />
-          ) : (
-            <div
-              style={{ height: 300, width: 250 }}
-              className="flex flex-col items-center justify-between cursor-pointer"
-            >
-              <Text align="center" weight={"bold"}>
-                {title}
-              </Text>
-              <>
-                <FaBook
-                  className={clsx(
-                    theme.colorScheme === "light" && `text-lavender text-8xl`
-                  )}
-                />
-                <Text color="dimmed" lineClamp={1} size="md">
-                  No cover
+          <Stack>
+            {image ? (
+              <Image
+                objectFit={"contain"}
+                src={image}
+                width={200}
+                height={250}
+                alt="The cover of a book"
+              />
+            ) : (
+              <div
+                style={{ height: 300, width: 250 }}
+                className="flex flex-col items-center justify-between cursor-pointer"
+              >
+                <Text align="center" weight={"bold"}>
+                  {title}
                 </Text>
-              </>
-            </div>
-          )}
+                <>
+                  <FaBook
+                    className={clsx(
+                      theme.colorScheme === "light" && `text-lavender text-8xl`
+                    )}
+                  />
+                  <Text color="dimmed" lineClamp={1} size="md">
+                    No cover
+                  </Text>
+                </>
+              </div>
+            )}
+            <Button onClick={ () => {
+              mutate({buddyReadId: id})
+              void router.push(`/buddyread/${id}`)}}>Join</Button>
+          </Stack>
         </Center>
       </Card>
     </>

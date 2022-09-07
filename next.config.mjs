@@ -17,6 +17,6 @@ export default defineNextConfig({
   images: {
     domains: ["books.google.com"],
   },
-  reactStrictMode: true,
+  reactStrictMode: false,
   swcMinify: true,
 });

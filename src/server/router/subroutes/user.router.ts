@@ -1,9 +1,9 @@
-import { customUserAuthSchema } from  "../../../schema/user.schema";
-import { createRouter } from "../trpc/context";
-import bcrypt from "bcrypt";
-import { TRPCError } from "@trpc/server";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
-
+import { TRPCError } from "@trpc/server";
+import bcrypt from "bcrypt";
+import { readingProgressSchema } from "../../../schema/readingProgress.schema";
+import { customUserAuthSchema } from "../../../schema/user.schema";
+import { createRouter } from "../trpc/context";
 
 export const userRouter = createRouter()
   .mutation("register-user", {
@@ -21,13 +21,12 @@ export const userRouter = createRouter()
       }
       const hashedPassword = bcrypt.hashSync(password, 10);
       try {
-        const user = await ctx.prisma.customUser.create({
+        return await ctx.prisma.customUser.create({
           data: {
             username: username,
             password: hashedPassword,
           },
         });
-        return user;
       } catch (e) {
         if (e instanceof PrismaClientKnownRequestError) {
           if (e.code === "P2002") {
@@ -62,5 +61,72 @@ export const userRouter = createRouter()
   .query("getAll", {
     async resolve({ ctx }) {
       return await ctx.prisma.customUser.findMany();
+    },
+  })
+  .middleware(async ({ ctx, next }) => {
+    if (!ctx.session?.user) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+      });
+    }
+
+    return next();
+  })
+  .query("get-self", {
+    async resolve({ ctx }) {
+      const user = ctx.session?.user;
+      return await ctx.prisma.customUser.findUnique({
+        where: { id: user?.id },
+        include: {
+          ReadingProgress: true,
+        },
+      });
+    },
+  })
+  .mutation("update-self-readingprogress", {
+    input: readingProgressSchema,
+    async resolve({ ctx, input }) {
+      const userId = ctx.session?.user?.id as string;
+
+      try {
+        return await ctx.prisma.customUser.update({
+          where: { id: userId},
+          data: {
+            ReadingProgress: {
+              connectOrCreate: [
+                {
+                  where: {
+                    userId_bookId: {
+                      userId,
+                      bookId: input.bookId ,
+                    },
+                  },
+                  create: {
+                    fullyRead: input.fullyRead,
+                    pagesRead: input.pagesRead,
+                    bookId: input.bookId ,
+                  },
+                },
+              ],
+
+              update: {
+                where: {
+                  userId_bookId: {
+                    userId,
+                    bookId: input.bookId ,
+                  },
+                },
+                data: {
+                  fullyRead: input.fullyRead,
+                  pagesRead: input.pagesRead,
+                  bookId: input.bookId 
+                },
+              },
+            },
+          },
+        });
+      } catch (error) {
+        console.log(error);
+      }
     },
   });

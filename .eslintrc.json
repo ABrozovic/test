@@ -6,14 +6,13 @@
     "node": true
   },
   "extends": [
-    "next",
-    "next/core-web-vitals",
     "eslint:recommended",
     "plugin:react/recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
-    "plugin:@next/next/recommended",
-    "next/core-web-vitals"
+    "plugin:@next/next/recommended"
+    // ,"next",
+    // "next/core-web-vitals"
   ],
   "globals": {
     "React": "readonly"
@@ -29,15 +28,15 @@
     "sourceType": "module"
   },
   "rules": {
-    // "@typescript-eslint/no-misused-promises": [
-    //   "error",
-    //   {
-    //     "checksVoidReturn": {
-    //       "arguments": true,
-    //       "attributes": false
-    //     }
-    //   }
-    // ],
+    "@typescript-eslint/no-misused-promises": [
+      "error",
+      {
+        "checksVoidReturn": {
+          "arguments": true,
+          "attributes": false
+        }
+      }
+    ],
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": [
       "error",

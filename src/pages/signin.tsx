@@ -8,7 +8,7 @@ import { Button, Card, Center, Group, Stack, Text, Title } from "@mantine/core";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { onPromise } from "../utils/promise-wrapper";
-import FormInput from "./book/upload/components/formInput";
+import FormInput from "../components/formInput";
 
 function SignInPage() {
   const {
@@ -34,7 +34,7 @@ function SignInPage() {
     if (token?.error) {
       setError("Invalid username or password");
     } else {
-      await router.push("/api/restricted");
+      await router.push("/");
     }
   }
 

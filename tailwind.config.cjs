@@ -2,7 +2,9 @@
 
 module.exports = {
   content: ["./src/**/*.{js,ts,jsx,tsx}"],
-
+  corePlugins: {
+    preflight: false,
+  },
   theme: {
     extend: {
       animation: {
@@ -27,6 +29,4 @@ module.exports = {
       },
     },
   },
-  darkMode: "class",
-  plugins: [require("@tailwindcss/forms")],
 };
