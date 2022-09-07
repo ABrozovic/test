@@ -1,16 +1,16 @@
 import { ColorScheme, MantineThemeOverride, Tuple } from "@mantine/core";
 
 const brand: Tuple<string, 10> = [
-  "#E2E0E2",
-  "#BEB7BE",
-  "#AFA4AF",
-  "#A292A2",
+  "#FCF4FC",
+  "#EFD4EF",
+  "#DEBCDE",
+  "#A88CA8",
   "#988098",
-  "#897389",
-  "#796A79",
-  "#6C616C",
-  "#605860",
-  "#555055",
+  "#906C90",
+  "#875C87",
+  "#804C80",
+  "#7B3D7B",
+  "#782D78",
 ];
 const purple: Tuple<string, 10> = [
   "#F3F2F6",
@@ -28,8 +28,11 @@ const purple: Tuple<string, 10> = [
 function getPrimaryColor(theme: string) {
   return theme === "dark" ? "purple" : "brand";
 }
-export function getThemeColor(theme: string) {  
+export function getThemeColor(theme: string) {
   return theme === "dark" ? purple[4] : brand[6];
+}
+export function getThemeBackgroundColor(theme: string) {
+  return theme === "dark" ? purple[6] : brand[6];
 }
 export default function getTheme(theme: ColorScheme): MantineThemeOverride {
   return {
@@ -38,6 +41,7 @@ export default function getTheme(theme: ColorScheme): MantineThemeOverride {
       brand,
       purple,
     },
+    loader:"bars",
     primaryColor: getPrimaryColor(theme),
   };
 }

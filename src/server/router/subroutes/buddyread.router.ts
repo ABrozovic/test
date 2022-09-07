@@ -18,6 +18,8 @@ const buddyReadRouter = createRouter()
           },
           include: {
             book: true,
+            // user: true,            
+            // comment: true,
           },
         });
       } catch (e) {
@@ -47,7 +49,6 @@ const buddyReadRouter = createRouter()
           where: {
             id: input.buddyReadId,
           },
-
           include: {
             book: true,
             user: {
@@ -122,7 +123,7 @@ const buddyReadRouter = createRouter()
                     create: {
                       pagesRead: input.progress.pagesRead,
                       fullyRead: input.progress.fullyRead,
-                      userId
+                      userId,
                     },
                     update: {
                       pagesRead: input.progress.pagesRead,

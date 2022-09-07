@@ -6,6 +6,7 @@ import {
   Collapse,
   Group,
   Modal,
+  ScrollArea,
   Select,
   Stack,
   Text,
@@ -30,6 +31,7 @@ import { onPromise } from "../../utils/promise-wrapper";
 import { getThemeColor } from "../../utils/themeBuilder";
 import { trpc } from "../../utils/trpc";
 import FormInput from "../../components/formInput";
+import AppShellLoader from "../../components/apshell/loader";
 
 function SinglePostPage() {
   const router = useRouter();
@@ -102,7 +104,7 @@ function SinglePostPage() {
   };
 
   if (isLoading || buddyReadId === "") {
-    return <p>Loading...</p>;
+    return <AppShellLoader/>
   }
 
   if (!data) {
@@ -138,6 +140,7 @@ function SinglePostPage() {
           </Group>
         </form>
       </Modal>
+      <ScrollArea style={{ height: "calc(100vh - 70px)"}} >
       <Card shadow="sm" p="sm" radius="md" withBorder>
         <Stack>
           <Title align="center" size={"sm"} pb={8}>
@@ -221,6 +224,7 @@ function SinglePostPage() {
           />
         )} */}
       </Card>
+      </ScrollArea>
     </>
     // <div>
     //   <h1>{data?.title}</h1>

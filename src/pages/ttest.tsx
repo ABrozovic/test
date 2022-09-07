@@ -6,14 +6,13 @@ import {
   Center,
   clsx,
   Group,
-  LoadingOverlay,
   Pagination,
   Radio,
   Stack,
   Text,
   TextInput,
   Title,
-  useMantineTheme,
+  useMantineTheme
 } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
 import { useSession } from "next-auth/react";
@@ -23,12 +22,13 @@ import { useForm } from "react-hook-form";
 import { FaBook, FaEdit, FaUpload } from "react-icons/fa";
 import { GiMagnifyingGlass } from "react-icons/gi";
 import { CreateBookInput, validateBookSchema } from "../schema/book.schema";
-import { onPromise } from "../utils/promise-wrapper";
 import { getThemeColor } from "../utils/themeBuilder";
 import { trpc } from "../utils/trpc";
 // import { UploadResponse } from "./api/upload";
+import AppShellLoader from "../components/apshell/loader";
 import FormInput from "../components/formInput";
-import { Item, BookSearch } from "../schema/googleBooks.schema";
+import { BookSearch, Item } from "../schema/googleBooks.schema";
+import { useRouter } from "next/router";
 
 function api<T>(url: string): Promise<T> {
   return fetch(url).then((response) => {
@@ -58,6 +58,7 @@ function api<T>(url: string): Promise<T> {
 
 function BuddyRead() {
   const [activePage, setPage] = useState(1);
+  const router = useRouter();
   const [bookArray, setBookArray] = useState<Item[]>([]);
   const [searchText, setSearchText] = useState("");
   const [searchLoading, setSearchLoading] = useState(false);
@@ -95,9 +96,7 @@ function BuddyRead() {
       });
     }
   };
-  const themeIsLight = () => {
-    return theme.colorScheme === "light";
-  };
+
   ////
   //
   const { data: session } = useSession();
@@ -141,7 +140,7 @@ function BuddyRead() {
     setAccordion("Data");
   };
 
-  const onSubmit =  (values: CreateBookInput) => {
+  const onSubmit = (values: CreateBookInput) => {
     // if (
     //   (values.image as FileList).length ||
     //   (values.hostedLink as FileList).length
@@ -151,13 +150,13 @@ function BuddyRead() {
     //       await uploadFile(values.hostedLink as FileList)
     //     ).files.toString();
     //   }
-      // if ((values.image as FileList).length) {
-      //   values.image = (
-      //     await uploadFile(values.image as FileList)
-      //   ).files.toString();
-      // }
+    // if ((values.image as FileList).length) {
+    //   values.image = (
+    //     await uploadFile(values.image as FileList)
+    //   ).files.toString();
+    // }
 
-      /* Send request to our api route */
+    /* Send request to our api route */
     // }
     console.log("after", values);
 
@@ -213,7 +212,14 @@ function BuddyRead() {
               </Group>
               <Center pt={8}>
                 <Stack align={"center"}>
-                  {bookArray.length < 1 && !searchLoading ? (
+                  {searchLoading ? (
+                    <div
+                      style={{ height: 150, width: 100 }}
+                      className="flex flex-col items-center justify-center gap-4 pt-4 border-slate-200 border "
+                    >
+                      <AppShellLoader />
+                    </div>
+                  ) : bookArray.length < 1 ? (
                     <>
                       <div
                         style={{ height: 150 }}
@@ -230,10 +236,6 @@ function BuddyRead() {
                     </>
                   ) : (
                     <>
-                      <LoadingOverlay
-                        visible={searchLoading || isLoading}
-                        overlayBlur={2}
-                      />
                       {(bookArray[activePage - 1]?.volumeInfo?.imageLinks
                         ?.thumbnail as string) ? (
                         <Image
@@ -281,18 +283,18 @@ function BuddyRead() {
           </Accordion.Item>
           <form
             className="space-y-2 flex flex-col h-full justify-between"
-            onSubmit={onPromise(
-              handleSubmit(onSubmit, (e) => {
+            onSubmit={
+               handleSubmit(onSubmit, (e) => {
                 console.log(e);
               })
-            )}
+            }
           >
             <Accordion.Item value="Data">
               <Accordion.Control
                 icon={
                   <FaEdit
                     color={getThemeColor(theme.colorScheme)}
-                    className={clsx(themeIsLight() && `text-lavender`)}
+                    
                   />
                 }
               >
@@ -333,8 +335,7 @@ function BuddyRead() {
                   <label htmlFor="downloadLinkType">
                     <div className="flex items-center gap-3">
                       <FaUpload
-                        color={getThemeColor(theme.colorScheme)}
-                        className={clsx(themeIsLight() && `text-lavender`)}
+                        color={getThemeColor(theme.colorScheme)}                        
                       />
                       Upload/Link:
                     </div>
@@ -381,8 +382,8 @@ function BuddyRead() {
                 </div>
               </div>
               <Group grow>
-                <Button type="submit">Create</Button>
-                <Button type="submit" variant="outline">
+                <Button type="submit" loading={isLoading}>Create</Button>
+                <Button type="submit" variant="outline" onClick={()=>!isLoading && router.back()}>
                   Cancel
                 </Button>
               </Group>

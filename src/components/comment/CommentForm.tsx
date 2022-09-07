@@ -85,7 +85,7 @@ function CommentsForm({
                 padding: "0.3rem",
               },
             }}
-            placeholder="Write a comment..."
+            placeholder={parentId ?"Write a comment...":"Start a topic..."}
             value={comment}
             onChange={(e) => {
               setComment(e);

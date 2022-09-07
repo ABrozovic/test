@@ -9,7 +9,10 @@ import {
   useMantineTheme,
 } from "@mantine/core";
 import { Dispatch, SetStateAction, useState } from "react";
-import { getThemeColor } from "../../utils/themeBuilder";
+import {
+  getThemeBackgroundColor,
+  getThemeColor,
+} from "../../utils/themeBuilder";
 import { CommentWithChildren } from "../../utils/trpc";
 import CommentForm from "./CommentForm";
 
@@ -70,22 +73,21 @@ function CommentActions({
 
 function Comment({ comment }: { comment: CommentWithChildren }) {
   const [opened, setOpened] = useState(false);
+  const theme = useMantineTheme();
   return (
     <>
       <Paper
         withBorder
         radius="md"
         mb={comment.children ? "xs" : "md"}
-        sx={() => ({
-          // paddingTop: "1rem",
-          // paddingBottom: "0.1rem",
+        sx={(theme) => ({
           position: "relative",
           paddingLeft: "0.5rem",
           marginRight: -1,
           overflow: "hidden",
           "&:before": {
             content: '""',
-            backgroundColor: "green",
+            backgroundColor: getThemeBackgroundColor(theme.colorScheme),
             height: "1.5rem",
             width: "100%",
             position: "absolute",
@@ -93,15 +95,6 @@ function Comment({ comment }: { comment: CommentWithChildren }) {
           },
         })}
       >
-        {/* <Box
-          sx={() => ({
-            backgroundColor: "red",
-            height: "1.5rem",
-            width: "100%",
-            position: "absolute",
-            left: 0,
-          })}
-        ></Box> */}
         <Box
           sx={() => ({
             display: "flex",
@@ -112,15 +105,22 @@ function Comment({ comment }: { comment: CommentWithChildren }) {
             sx={() => ({
               width: "100%",
               display: "flex",
-              backgroundColor: "white",
               flexDirection: "column",
             })}
           >
-            <Group position="apart" sx={() => ({ zIndex: 1 })}>
-              <Text size={"sm"} weight={"bold"}>
+            <Group
+              position="apart"
+              sx={() => ({ zIndex: 1, marginLeft: "-10px" })}
+            >
+              <Text
+                size={"sm"}
+                weight="bolder"
+                transform="capitalize"
+                color={theme.colorScheme == "light" ? "white" : ""}
+              >
                 {comment.user.username}
               </Text>
-              <Text size={"sm"} pr={"xs"}>
+              <Text size={"sm"} pr={"xs"} color={theme.colorScheme == "light" ? "white" : ""}>
                 {comment.createdAt.toLocaleString("en-US", {
                   year: "2-digit",
                   month: "2-digit",
@@ -129,7 +129,7 @@ function Comment({ comment }: { comment: CommentWithChildren }) {
               </Text>
             </Group>
             <TypographyStylesProvider>
-              <Text pr={"xs"}>
+              <Text pr={"xs"} pt={5}>
                 <div
                   className="w-full break-words"
                   dangerouslySetInnerHTML={{ __html: comment.message }}

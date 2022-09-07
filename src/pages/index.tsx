@@ -4,11 +4,10 @@ import {
   Center,
   clsx,
   Group,
-  LoadingOverlay,
   Paper,
   Stack,
   Text,
-  useMantineTheme,
+  useMantineTheme
 } from "@mantine/core";
 import type { NextPage } from "next";
 import Head from "next/head";
@@ -16,6 +15,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { CgSmileNone } from "react-icons/cg";
 import { FaBook } from "react-icons/fa";
+import AppShellLoader from "../components/apshell/loader";
 import { getThemeColor } from "../utils/themeBuilder";
 import { trpc } from "../utils/trpc";
 
@@ -24,6 +24,8 @@ const Home: NextPage = () => {
   const { data, isLoading } = trpc.useQuery([
     "buddyreads.get-active-buddyreads",
   ]);
+  if(isLoading)
+    return <AppShellLoader/>
   
   return (
     <>
@@ -34,7 +36,7 @@ const Home: NextPage = () => {
       </Head>
       <Paper>
         <Group position="center">
-          <LoadingOverlay visible={isLoading} overlayBlur={9} />
+          
 
           {data && data?.length > 0 && !isLoading ? (
             data.map((buddyRead) => (
